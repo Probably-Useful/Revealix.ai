@@ -1,5 +1,5 @@
-import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import React, { Suspense, lazy, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import PageLoader from './components/PageLoader';
@@ -10,9 +10,17 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const TextAnalysis = lazy(() => import('./pages/TextAnalysis'));
 const Contact = lazy(() => import('./pages/Contact'));
 
+// Scroll to top on every route change
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+};
+
 const App = () => {
   return (
     <Router>
+      <ScrollToTop />
       <Header />
       <Suspense fallback={<PageLoader />}>
         <Routes>

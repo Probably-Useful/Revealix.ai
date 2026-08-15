@@ -1,9 +1,9 @@
 /**
  * API base URL
  * - Dev: Vite proxy rewrites /api → http://localhost:5000
- * - Prod: Set VITE_API_URL to your Railway backend URL
+ * - Prod: VITE_API_URL = https://revealixai-production.up.railway.app
  */
-const BASE = import.meta.env.VITE_API_URL ?? '/api';
+const BASE = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '');
 
 export const api = {
   post: (path, body) =>

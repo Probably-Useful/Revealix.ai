@@ -56,7 +56,7 @@ except ImportError:
     print("[Revealix] WARNING: supabase not installed. Run: pip install supabase")
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=False)
 
 # ── Supabase client ──────────────────────────────────────────────────────────
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
@@ -355,4 +355,5 @@ def health():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
