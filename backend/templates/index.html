@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Emotion Detection</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
+
+        body {
+            margin: 0;
+            font-family: 'Quicksand', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%);
+            color: #ffffff;
+        }
+
+        .live-feed-wrapper {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .video-section {
+            flex: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .video-section img {
+            width: 100%;
+            max-width: 720px;
+            border: 5px solid #A91D3A;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(169, 29, 58, 0.7);
+        }
+
+        .control-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            padding: 1rem;
+            margin-left: 2rem;
+        }
+
+        .company-logo {
+            width: 150px;
+            margin-bottom: 1rem;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .button {
+            background-color: #A91D3A;
+            color: white;
+            padding: 10px 20px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 600;
+        }
+
+        .button:hover {
+            background-color: #8e172d;
+        }
+    </style>
+</head>
+<body>
+<div class="live-feed-wrapper">
+    <div class="video-section">
+        <img src="/video_feed" alt="Live Video Feed">
+    </div>
+    <div class="control-section">
+        <img src="static/logo.png" alt="Company Logo" class="company-logo">
+        <div class="button-group">
+            <button class="button" onclick="startRecording()">Start Recording</button>
+            <button class="button" onclick="stopRecording()">End Recording</button>
+            <button class="button" onclick="window.location.href = '/dashboard'">Analyze Emotions</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function startRecording() {
+        fetch('/start_recording', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => console.error('Error:', error));
+    }
+
+    function stopRecording() {
+        fetch('/stop_recording', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => console.error('Error:', error));
+    }
+</script>
+</body>
+</html>
