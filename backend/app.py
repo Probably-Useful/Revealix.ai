@@ -105,14 +105,16 @@ def _generate_frames():
         print("[Revealix] cv2 not available — cannot open camera.")
         return
 
-    # Try camera indices 1,2,0 — index 0 may be a virtual/broken device
+    # Try camera indices 2,1,3,0 — index 0 may be a virtual/broken device
     cap = None
-    for idx in [1, 2, 0, 3]:
+    for idx in [2, 1, 3, 0]:
         test = cv2.VideoCapture(idx)
         if test.isOpened():
-            cap = test
-            print(f"[Revealix] Camera opened on index {idx}")
-            break
+            ret, _ = test.read()
+            if ret:
+                cap = test
+                print(f"[Revealix] Camera opened on index {idx}")
+                break
         test.release()
 
     if cap is None:
@@ -251,7 +253,57 @@ def stop_recording():
     })
 
 
-@app.route('/analyze_sentiment', methods=['POST'])
+@app.route('/analyze_frame', methods=['POST'])
+def analyze_frame():
+    """Receive a JPEG frame from the browser, run DeepFace, return emotion."""
+    if not CV2_AVAILABLE or not DEEPFACE_AVAILABLE:
+        return jsonify({'error': 'DeepFace not available'}), 503
+
+    file = request.files.get('frame')
+    session_id = request.form.get('session_id')
+    person_name = request.form.get('person_name', 'Person1')
+
+    if not file:
+        return jsonify({'error': 'No frame provided'}), 400
+
+    import numpy as np
+    img_bytes = np.frombuffer(file.read(), np.uint8)
+    frame = cv2.imdecode(img_bytes, cv2.IMREAD_COLOR)
+    if frame is None:
+        return jsonify({'error': 'Could not decode frame'}), 400
+
+    results = _analyze_frame(frame)
+    if not results:
+        return jsonify({'emotion': None, 'logged': False})
+
+    result = results[0]
+    emotion = result.get('dominant_emotion', 'unknown')
+    confidence = result.get('emotion', {}).get(emotion, 0.0)
+
+    logged = False
+    if _recording and session_id:
+        entry = {
+            'session_id': session_id,
+            'timestamp': time.strftime('%Y-%m-%dT%H:%M:%S'),
+            'person': person_name,
+            'emotion': emotion,
+            'confidence': round(float(confidence), 4),
+            'x': result.get('region', {}).get('x', 0),
+            'y': result.get('region', {}).get('y', 0),
+            'width': result.get('region', {}).get('w', 0),
+            'height': result.get('region', {}).get('h', 0),
+        }
+        with _lock:
+            _emotion_buffer.append(entry)
+        logged = True
+        print(f"[Revealix] Frame: {person_name} -> {emotion} ({confidence:.2f})")
+
+    return jsonify({
+        'emotion': emotion,
+        'confidence': round(float(confidence), 4),
+        'region': result.get('region', {}),
+        'logged': logged,
+    })
 def analyze_sentiment():
     if not VADER_AVAILABLE:
         return jsonify({'error': 'vaderSentiment not installed. Run: pip install vaderSentiment nltk'}), 503
